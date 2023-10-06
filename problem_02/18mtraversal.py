@@ -5,7 +5,6 @@ x_t+1 = = x_t + -vsin(theta) * delta t
 y_t+1 = y_t + vcos(theta) * delta t
 theta_t+1 = theta_t + (v/L) tan(alpha) * delta t
 """
-import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -26,9 +25,9 @@ def main():
     while time < circumfranceT:
         trajectory.append((x,y))
         if time < 3.25:
-            alpha = np.arctan(2* L/R)
+            alpha = np.arctan2(2* L/R)
         else: 
-            alpha = np.arctan(L/R)
+            alpha = np.arctan2(L,R)
         x =  x + v * np.cos(theta) * deltaT
         y = y + v * np.sin(theta) * deltaT
         theta = theta + (v/L) * np.tan(alpha) * deltaT
