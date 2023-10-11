@@ -60,13 +60,13 @@ class CartPoleEnv(gym.Env):
         self.total_mass = self.masspole + self.masscart
         self.length = 0.5  # actually half the pole's length
         self.polemass_length = self.masspole * self.length
-        self.force_mag = 10.0
+        self.force_mag = 7.0
         self.tau = 0.02  # seconds between state updates
         self.kinematics_integrator = "euler"
 
         # Angle at which to fail the episode
-        self.theta_threshold_radians = 12 * 2 * math.pi / 360
-        self.x_threshold = 2.4
+        self.theta_threshold_radians = 90 * 2 * math.pi / 360
+        self.x_threshold = 6.5
 
         # Angle limit set to 2 * theta_threshold_radians so failing observation
         # is still within bounds.
@@ -153,7 +153,10 @@ class CartPoleEnv(gym.Env):
 
     def reset(self):
         self.state = self.np_random.uniform(low=-0.05, high=0.05, size=(4,))
-        self.steps_beyond_done = None
+        self.steps_beyond_done = None 
+        #set the initial state of theta to be 0.5
+        self.state[2]  = 38 * 2 * math.pi / 360
+        print(self.state[2])
         return np.array(self.state, dtype=np.float32)
 
     def render(self, mode="human"):
@@ -227,10 +230,63 @@ class CartPoleEnv(gym.Env):
             self.viewer = None
 
 
-# Path: wrappers.py
+def apply_state_controller(K, x):
+    # feedback controller
+    u = -np.dot(K, x)   # u = -Kx
+    if u > 0:
+        return 1, u     # if force_dem > 0 -> move cart right
+    else:
+        return 0, u     # if force_dem <= 0 -> move cart left
+    
 if __name__ == "__main__":
     env = CartPoleEnv()
-    env.reset()
-    env.render()
+    obs = env.reset()
+    g = env.gravity
+    lp = env.length
+    mp = env.masspole
+    mk = env.masscart
+    mt = mp + mk
+    # state matrix
+    a = g/(lp*(4.0/3 - mp/(mp+mk)))
+    A = np.array([[0, 1, 0, 0],
+                [0, 0, a, 0],
+                [0, 0, 0, 1],
+                [0, 0, a, 0]])
+
+    # input matrix
+    b = -1/(lp*(4.0/3 - mp/(mp+mk)))
+    B = np.array([[0], [1/mt], [0], [b]])
+
+
+    R = np.eye(1, dtype=int)          # choose R (weight for input)
+    Q = 5*np.eye(4, dtype=int)        # choose Q (weight for state)
+
+    # get riccati solver
+    from scipy import linalg
+
+    # solve ricatti equation
+    P = linalg.solve_continuous_are(A, B, Q, R)
+
+    # calculate optimal controller gain
+    K = np.dot(np.linalg.inv(R), np.dot(B.T, P))
+
+    for i in range(1000):
+        
+        env.render()
+        
+        # get force direction (action) and force value (force)
+        action, force = apply_state_controller(K, obs)
+        
+        # absolute value, since 'action' determines the sign, F_min = -10N, F_max = 10N
+        abs_force = abs(float(np.clip(force, -10, 10)))
+        
+        # change magnitute of the applied force in CartPole
+        env.force_mag = abs_force
+
+        # apply action
+        obs, reward, done, _ = env.step(action)
+        if done:
+            print(f'Terminated after {i+1} iterations.')
+            break
+
     env.close()
-    
