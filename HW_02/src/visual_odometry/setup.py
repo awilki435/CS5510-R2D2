@@ -20,7 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'test_node = visual_odometry.test_node:main'
+            'image_recorder = visual_odometry.image_recorder:main',
+            'test_pub = visual_odometry.test_publisher:main',
         ],
     },
 )
