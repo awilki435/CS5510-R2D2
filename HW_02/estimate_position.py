@@ -21,10 +21,10 @@ def main(args=None):
         # Open the file in append mode ('a') to add new coordinates without overwriting
         if i != 0:
             with open(file_name, 'a') as file:
-                file.write(f"{x}, {y}, {z}\n")
+                file.write(f"{x} {y} {z}\n")
         else: 
             with open(file_name, 'w') as file:
-                file.write(f"{x}, {y}, {z}\n")
+                file.write(f"{x} {y} {z}\n")
 
 
 

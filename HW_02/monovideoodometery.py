@@ -37,6 +37,7 @@ class MonoVideoOdometery(object):
         self.n_features = 0
 
         try:
+            print(x for x in os.listdir(img_file_path))
             if not all([".png" in x for x in os.listdir(img_file_path)]):
                 raise ValueError("img_file_path is not correct and does not exclusively png files")
         except Exception as e:
@@ -102,16 +103,19 @@ class MonoVideoOdometery(object):
         self.good_old = self.p0[st == 1]
         self.good_new = self.p1[st == 1]
 
+        print("Number of good features: ", self.good_new.shape[0])
+        print("Number of old features: ", self.good_old.shape[0])
 
         # If the frame is one of first two, we need to initalize
         # our t and R vectors so behavior is different
+        E, _ = cv2.findEssentialMat(self.good_new, self.good_old, self.focal, self.pp, cv2.RANSAC, 0.999, 1.0, None)
+        _, R, t, _ = cv2.recoverPose(E, self.good_old, self.good_new, focal=self.focal, pp=self.pp, mask=None)
+        # If the frame is one of first two, we need to initalize
+        # our t and R vectors so behavior is different
         if self.id < 2:
-            E, _ = cv2.findEssentialMat(self.good_new, self.good_old, self.focal, self.pp, cv2.RANSAC, 0.999, 1.0, None)
-            _, self.R, self.t, _ = cv2.recoverPose(E, self.good_old, self.good_new, self.R, self.t, self.focal, self.pp, None)
+            self.R = R
+            self.t = t
         else:
-            E, _ = cv2.findEssentialMat(self.good_new, self.good_old, self.focal, self.pp, cv2.RANSAC, 0.999, 1.0, None)
-            _, R, t, _ = cv2.recoverPose(E, self.good_old, self.good_new, self.R.copy(), self.t.copy(), self.focal, self.pp, None)
-
             absolute_scale = self.get_absolute_scale()
             if (absolute_scale > 0.1 and abs(t[2][0]) > abs(t[0][0]) and abs(t[2][0]) > abs(t[1][0])):
                 self.t = self.t + absolute_scale*self.R.dot(t)

@@ -5,7 +5,7 @@ from monovideoodometery import MonoVideoOdometery
 import os
 
 
-img_path = '/home/yotta/class/inteligent_robots/CS5510-R2D2/HW_02/data/'
+img_path = '/home/yotta/class/inteligent_robots/CS5510-R2D2/HW_02/images/'
 pose_path = '/home/yotta/class/inteligent_robots/CS5510-R2D2/HW_02/data/pose.txt'
 
 focal = 718.8560
@@ -60,6 +60,9 @@ while(vo.hasNextFrame()):
     mono_coord = vo.get_mono_coordinates()
     true_coord = vo.get_true_coordinates()
 
+    mono_coord = mono_coord*200
+    true_coord = true_coord*200
+
     print("MSE Error: ", np.linalg.norm(mono_coord - true_coord))
     print("x: {}, y: {}, z: {}".format(*[str(pt) for pt in mono_coord]))
     print("true_x: {}, true_y: {}, true_z: {}".format(*[str(pt) for pt in true_coord]))
@@ -67,15 +70,15 @@ while(vo.hasNextFrame()):
     draw_x, draw_y, draw_z = [int(round(x)) for x in mono_coord]
     true_x, true_y, true_z = [int(round(x)) for x in true_coord]
 
-    traj = cv.circle(traj, (true_x + 400, true_z + 100), 1, list((0, 0, 255)), 4)
-    traj = cv.circle(traj, (draw_x + 400, draw_z + 100), 1, list((0, 255, 0)), 4)
+    traj = cv.circle(traj, (true_x + 400, true_y + 100), 1, list((0, 0, 255)), 4)
+    traj = cv.circle(traj, (draw_x + 400, draw_y + 100), 1, list((0, 255, 0)), 4)
 
     cv.putText(traj, 'Actual Position:', (140, 90), cv.FONT_HERSHEY_SIMPLEX, 0.5,(255,255,255), 1)
     cv.putText(traj, 'Red', (270, 90), cv.FONT_HERSHEY_SIMPLEX, 0.5,(0, 0, 255), 1)
     cv.putText(traj, 'Estimated Odometry Position:', (30, 120), cv.FONT_HERSHEY_SIMPLEX, 0.5,(255,255,255), 1)
     cv.putText(traj, 'Green', (270, 120), cv.FONT_HERSHEY_SIMPLEX, 0.5,(0, 255, 0), 1)
 
-    cv.imshow('trajectory', traj)
+    #cv.imshow('trajectory', traj)
 cv.imwrite("./images/trajectory.png", traj)
 
 cv.destroyAllWindows()
