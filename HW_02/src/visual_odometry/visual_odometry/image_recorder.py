@@ -22,11 +22,11 @@ class ImageRecorder(Node):
         cb_image = MutuallyExclusiveCallbackGroup()
 
         # Create timer for saving an image to a file
-        self.create_timer(timer_period_sec=1, callback=self.save_file,callback_group=cb_timer)
+        self.create_timer(timer_period_sec=0.5, callback=self.save_file,callback_group=cb_timer)
 
         # Create a subscriber for an image message
         self.sub_image = self.create_subscription(
-            Image, "images", self.image_callback, 10, callback_group=cb_image
+            Image, "raw_image", self.image_callback, 10, callback_group=cb_image
         )
         # Create a storage variables
         self.latest_image: typing.Optional[Image] = None
