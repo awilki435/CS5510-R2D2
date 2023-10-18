@@ -21,3 +21,10 @@ source /opt/ros/humble/setup.bash && ros2 run visual_odometry image_recorder
 ```
 
 This sources ROS and runs the image recorder. As you can see, the random image generated from the test publisher is read and saved by the `image_recorder`.
+
+
+# Monocular Video Odometry Using OpenCV
+
+Run command `python ./test.py`
+images inlcude the png files from the video
+pose.txt is estimated position of the camera
