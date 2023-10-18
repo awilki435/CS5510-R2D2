@@ -1,6 +1,6 @@
 def main(args=None):
-    png_count = 71
-    file_name = "pose.txt"
+    png_count = 198
+    file_name = "pose2.txt"
     x_count = 0
     y_count = 0
     z_pos = 0

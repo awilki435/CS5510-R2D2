@@ -5,8 +5,8 @@ from monovideoodometery import MonoVideoOdometery
 import os
 
 
-img_path = '/home/yotta/class/inteligent_robots/CS5510-R2D2/HW_02/images/'
-pose_path = '/home/yotta/class/inteligent_robots/CS5510-R2D2/HW_02/data/pose.txt'
+img_path = '/home/yotta/class/inteligent_robots/CS5510-R2D2/HW_02/images2/'
+pose_path = '/home/yotta/class/inteligent_robots/CS5510-R2D2/HW_02/data/pose2.txt'
 
 focal = 718.8560
 pp = (607.1928, 185.2157)
@@ -78,7 +78,7 @@ while(vo.hasNextFrame()):
     cv.putText(traj, 'Estimated Odometry Position:', (30, 120), cv.FONT_HERSHEY_SIMPLEX, 0.5,(255,255,255), 1)
     cv.putText(traj, 'Green', (270, 120), cv.FONT_HERSHEY_SIMPLEX, 0.5,(0, 255, 0), 1)
 
-    #cv.imshow('trajectory', traj)
+    cv.imshow('trajectory', traj)
 cv.imwrite("./images/trajectory.png", traj)
 
 cv.destroyAllWindows()
