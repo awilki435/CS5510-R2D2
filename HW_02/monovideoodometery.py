@@ -114,7 +114,8 @@ class MonoVideoOdometery(object):
             self.t = t
         else:
             absolute_scale = self.get_absolute_scale()
-            if (absolute_scale > 0.1 and abs(t[2][0]) > abs(t[0][0]) and abs(t[2][0]) > abs(t[1][0])):
+            print("Absolute Scale: ", absolute_scale)
+            if (absolute_scale > 0.001 and abs(t[2][0]) > abs(t[0][0]) and abs(t[2][0]) > abs(t[1][0])):
                 self.t = self.t + absolute_scale*self.R.dot(t)
                 self.R = R.dot(self.R)
 

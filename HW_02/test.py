@@ -71,7 +71,7 @@ while(vo.hasNextFrame()):
     true_x, true_y, true_z = [int(round(x)) for x in true_coord]
 
     traj = cv.circle(traj, (true_x + 400, true_y + 100), 1, list((0, 0, 255)), 4)
-    traj = cv.circle(traj, (draw_x + 400, draw_y + 100), 1, list((0, 255, 0)), 4)
+    traj = cv.circle(traj, (-draw_x + 400, -draw_y + 100), 1, list((0, 255, 0)), 4)
 
     cv.putText(traj, 'Actual Position:', (140, 90), cv.FONT_HERSHEY_SIMPLEX, 0.5,(255,255,255), 1)
     cv.putText(traj, 'Red', (270, 90), cv.FONT_HERSHEY_SIMPLEX, 0.5,(0, 0, 255), 1)
