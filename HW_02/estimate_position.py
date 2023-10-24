@@ -1,6 +1,6 @@
 def main(args=None):
     png_count = 198
-    file_name = "pose2.txt"
+    file_name = "pose3.txt"
     x_count = 0
     y_count = 0
     z_pos = 0
@@ -11,11 +11,11 @@ def main(args=None):
         # Replace these lines with code to get the current x, y, and z coordinates
         x, y, z = x_count, y_count, z_pos
         if(i <= square_side):
-            x_count += x_increase
+            x_count -= x_increase
         if(i <= 2 * square_side and i > square_side):
             y_count += y_increase
         if(i <= 3 * square_side and i > 2 * square_side):
-            x_count -= x_increase
+            x_count += x_increase
         if(i <= 4 * square_side and i > 3 * square_side):
             y_count -= y_increase
         # Open the file in append mode ('a') to add new coordinates without overwriting
