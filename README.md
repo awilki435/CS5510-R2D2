@@ -29,7 +29,7 @@ Please contact a member of this group if you are unable to run any of these prob
 ### Problem 5
 - Problem 5 has its own README for instructions on how to run
 ### Problem 6
-- The results for problem 6 can be found in `Face_Emotion_Recognition_from_Videow.ipynb`
+- The results for problem 6 can be found in `Face_Emotion_Recognition_from_Video.ipynb`
 ### Problem 7
 - Each search type has its own file to run
 ### Problem 8
