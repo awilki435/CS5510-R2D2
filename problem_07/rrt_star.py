@@ -10,6 +10,7 @@ import math
 import sys
 import matplotlib.pyplot as plt
 import pathlib
+import time
 sys.path.append(str(pathlib.Path(__file__).parent.parent))
 
 from rrt import RRT
@@ -32,11 +33,11 @@ class RRTStar(RRT):
                  goal,
                  obstacle_list,
                  rand_area,
-                 expand_dis=30.0,
+                 expand_dis=1000.0,
                  path_resolution=1.0,
                  goal_sample_rate=20,
-                 max_iter=300,
-                 connect_circle_dist=50.0,
+                 max_iter=1000,
+                 connect_circle_dist=25.0,
                  search_until_max_iter=False,
                  robot_radius=0.0):
         """
@@ -249,34 +250,71 @@ class RRTStar(RRT):
 
 def main():
     print("Start " + __file__)
-
+    start = time.time()
     # ====Search Path with RRT====
     obstacle_list = [
-        (5, 5, 1),
-        (3, 6, 2),
-        (3, 8, 2),
-        (3, 10, 2),
-        (7, 5, 2),
-        (9, 5, 2),
-        (8, 10, 1),
-        (6, 12, 1),
+        (20, -10, 3),
+        (20, -5, 3),
+        (20, 0, 3),
+        (20, 5, 3),
+        (20, 10, 3),
+        (20, 15, 3),
+        (20, 20, 3),
+        (20, 25, 3),
+        (20, 30, 3),
+        (20, 35, 3),
+        (20, 40, 3),
+        (40, 20, 3),
+        (40, 25, 3),
+        (40, 30, 3),
+        (40, 35, 3),
+        (40, 40, 3),
+        (40, 45, 3),
+        (40, 50, 3),
+        (40, 55, 3),
+        (40, 60, 3),
+        (-10, -10, 3),
+        (-5, -10, 3),
+        (0, -10, 3),
+        (5, -10, 3),
+        (10, -10, 3),
+        (15, -10, 3),
+        (20, -10, 3),
+        (25, -10, 3),
+        (30, -10, 3),
+        (35, -10, 3),
+        (40, -10, 3),
+        (-10, 60, 3),
+        (-5, 60, 3),
+        (0, 60, 3),
+        (5, 60, 3),
+        (10, 60, 3),
+        (15, 60, 3),
+        (20, 60, 3),
+        (25, 60, 3),
+        (30, 60, 3),
+        (35, 60, 3),
+        (40, 60, 3),
     ]  # [x,y,size(radius)]
 
     # Set Initial parameters
     rrt_star = RRTStar(
-        start=[0, 0],
-        goal=[6, 10],
-        rand_area=[-2, 15],
+        start=[10, 10],
+        goal=[50, 50],
+        rand_area=[-10, 65],
         obstacle_list=obstacle_list,
-        expand_dis=1,
-        robot_radius=0.8)
+        expand_dis=10,
+        robot_radius=0)
     path = rrt_star.planning(animation=show_animation)
 
     if path is None:
         print("Cannot find path")
     else:
         print("found path!!")
+        # print("path length:", rrt_star.get_path_length(path))
 
+        end = time.time()
+        print("time spent:", end - start)
         # Draw final path
         if show_animation:
             rrt_star.draw_graph()

@@ -1,6 +1,5 @@
 """
-
-A* grid planning
+Adapted base model used from 
 
 author: Atsushi Sakai(@Atsushi_twi)
         Nikos Kanargias (nkana@tee.gr)
@@ -10,9 +9,8 @@ See Wikipedia article (https://en.wikipedia.org/wiki/A*_search_algorithm)
 """
 
 import math
-import time
 import matplotlib.pyplot as plt
-
+import time
 show_animation = True
 
 
@@ -48,7 +46,7 @@ class AStarPlanner:
             return str(self.x) + "," + str(self.y) + "," + str(
                 self.cost) + "," + str(self.parent_index)
 
-    def planning(self, sx, sy, gx, gy):
+    def planning(self, sx, sy, gx, gy, ox, oy):
         """
         A star path search
 
@@ -80,7 +78,7 @@ class AStarPlanner:
                 open_set,
                 key=lambda o: open_set[o].cost + self.calc_heuristic(goal_node,
                                                                      open_set[
-                                                                         o]))
+                                                                         o], ox, oy))
             current = open_set[c_id]
 
             # show graph
@@ -145,9 +143,21 @@ class AStarPlanner:
         return rx, ry
 
     @staticmethod
-    def calc_heuristic(n1, n2):
-        w = 1.0  # weight of heuristic
-        d = w * math.hypot(n1.x - n2.x, n1.y - n2.y)
+    def calc_heuristic(n1, n2, ox, oy):
+        #################################################
+        #Define the heuristic function to like to be closer to obstacles
+        #################################################
+
+        #distance to nearest obstacle
+        d = 0
+        for i in range(len(ox)):
+            d = min(d, math.hypot(n1.x - ox[i], n1.y - oy[i]))
+
+        #distance to goal
+        d += math.hypot(n1.x - n2.x, n1.y - n2.y)
+
+        # w = 1.0  # weight of heuristic
+        # d = w * math.hypot(n1.x - n2.x, n1.y - n2.y)
         return d
 
     def calc_grid_position(self, index, min_position):
@@ -270,13 +280,14 @@ def main():
         plt.axis("equal")
 
     a_star = AStarPlanner(ox, oy, grid_size, robot_radius)
-    rx, ry, goal_node = a_star.planning(sx, sy, gx, gy)
+    rx, ry, goal_node = a_star.planning(sx, sy, gx, gy, ox, oy)
 
     end = time.time()
     print("Time taken: ", end - start)
 
     #print final path cost
     print("Final path cost: ", goal_node.cost)
+
     if show_animation:  # pragma: no cover
         plt.plot(rx, ry, "-r")
         plt.pause(0.001)

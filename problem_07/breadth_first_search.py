@@ -9,7 +9,7 @@ See Wikipedia article (https://en.wikipedia.org/wiki/Breadth-first_search)
 """
 
 import math
-
+import time
 import matplotlib.pyplot as plt
 
 show_animation = True
@@ -112,7 +112,7 @@ class BreadthFirstSearchPlanner:
                     open_set[n_id] = node
 
         rx, ry = self.calc_final_path(ngoal, closed_set)
-        return rx, ry
+        return rx, ry, ngoal
 
     def calc_final_path(self, ngoal, closedset):
         # generate final course
@@ -208,7 +208,7 @@ class BreadthFirstSearchPlanner:
 
 def main():
     print(__file__ + " start!!")
-
+    start = time.time()
     # start and goal position
     sx = 10.0  # [m]
     sy = 10.0  # [m]
@@ -246,8 +246,12 @@ def main():
         plt.axis("equal")
 
     bfs = BreadthFirstSearchPlanner(ox, oy, grid_size, robot_radius)
-    rx, ry = bfs.planning(sx, sy, gx, gy)
+    rx, ry, goal_node = bfs.planning(sx, sy, gx, gy)
+    end = time.time()
+    print("Time taken: ", end - start)
 
+    #print final path cost
+    print("Final path cost: ", goal_node.cost)
     if show_animation:  # pragma: no cover
         plt.plot(rx, ry, "-r")
         plt.pause(0.01)

@@ -70,8 +70,3 @@ plt.show()
 # Release the video capture and destroy all windows
 video.release()
 cv2.destroyAllWindows()
-
-
-# Release the video capture and destroy all windows
-video.release()
-cv2.destroyAllWindows()

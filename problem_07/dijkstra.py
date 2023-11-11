@@ -8,6 +8,7 @@ author: Atsushi Sakai(@Atsushi_twi)
 
 import matplotlib.pyplot as plt
 import math
+import time
 
 show_animation = True
 
@@ -120,7 +121,7 @@ class Dijkstra:
 
         rx, ry = self.calc_final_path(goal_node, closed_set)
 
-        return rx, ry
+        return rx, ry, goal_node
 
     def calc_final_path(self, goal_node, closed_set):
         # generate final course
@@ -209,10 +210,10 @@ class Dijkstra:
 
 def main():
     print(__file__ + " start!!")
-
+    start = time.time()
     # start and goal position
-    sx = -5.0  # [m]
-    sy = -5.0  # [m]
+    sx = 10.0  # [m]
+    sy = 10.0  # [m]
     gx = 50.0  # [m]
     gy = 50.0  # [m]
     grid_size = 2.0  # [m]
@@ -247,7 +248,13 @@ def main():
         plt.axis("equal")
 
     dijkstra = Dijkstra(ox, oy, grid_size, robot_radius)
-    rx, ry = dijkstra.planning(sx, sy, gx, gy)
+    rx, ry, goal_node = dijkstra.planning(sx, sy, gx, gy)
+
+    end = time.time()
+    print("Time taken: ", end - start)
+
+    #print final path cost
+    print("Final path cost: ", goal_node.cost)
 
     if show_animation:  # pragma: no cover
         plt.plot(rx, ry, "-r")

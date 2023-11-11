@@ -9,7 +9,7 @@ See Wikipedia article (https://en.wikipedia.org/wiki/Bidirectional_search)
 """
 
 import math
-
+import time
 import matplotlib.pyplot as plt
 
 show_animation = True
@@ -165,7 +165,7 @@ class BidirectionalAStarPlanner:
         rx, ry = self.calc_final_bidirectional_path(
             meet_point_A, meet_point_B, closed_set_A, closed_set_B)
 
-        return rx, ry
+        return rx, ry, goal_node
 
     # takes two sets and two meeting nodes and return the optimal path
     def calc_final_bidirectional_path(self, n1, n2, setA, setB):
@@ -297,7 +297,7 @@ class BidirectionalAStarPlanner:
 
 def main():
     print(__file__ + " start!!")
-
+    start = time.time()
     # start and goal position
     sx = 10.0  # [m]
     sy = 10.0  # [m]
@@ -335,14 +335,18 @@ def main():
         plt.axis("equal")
 
     bidir_a_star = BidirectionalAStarPlanner(ox, oy, grid_size, robot_radius)
-    rx, ry = bidir_a_star.planning(sx, sy, gx, gy)
+    rx, ry, goal_node = bidir_a_star.planning(sx, sy, gx, gy)
 
     #get cost of resulting path
     cost = 0
     for i in range(len(rx)-1):
         cost += math.sqrt((rx[i+1]-rx[i])**2 + (ry[i+1]-ry[i])**2)
     print("Cost of path: ", cost)
+    end = time.time()
+    print("Time taken: ", end - start)
 
+    #print final path cost
+    print("Final path cost: ", goal_node.cost)
     if show_animation:  # pragma: no cover
         plt.plot(rx, ry, "-r")
         plt.pause(.0001)
