@@ -5,7 +5,7 @@ from monovideoodometery import MonoVideoOdometery
 import os
 
 
-img_path = 'hallway_output/'
+img_path = 'hallway_imgs/'
 pose_path = 'pose3.txt'
 
 focal = 718.8560
