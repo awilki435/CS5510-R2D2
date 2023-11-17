@@ -12,8 +12,10 @@ from rclpy.executors import MultiThreadedExecutor
 from sensor_msgs.msg import Image
 from geometry_msgs.msg._pose_stamped import PoseStamped
 
+
 class Localizer(Node):
     """Localize where the ball and goal are"""
+
     def __init__(self):
         """Initialize Node."""
         super().__init__(node_name="Localizer")
@@ -27,7 +29,7 @@ class Localizer(Node):
             Image, "raw_image", self.image_callback, 10, callback_group=self.cb_image
         )
         self.latest_image: typing.Optional[Image] = None
-        
+
         # TODO: Create Service for finding ball or goal
 
     def image_callback(self, msg: Image) -> None:
@@ -42,6 +44,7 @@ class Localizer(Node):
         """Find where the goal is."""
         pass
 
+
 def main(args=None):
     """Spin the node."""
     # Initialize ros
@@ -53,5 +56,6 @@ def main(args=None):
     exec.add_node(node)
     exec.spin()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

@@ -18,6 +18,7 @@ from geometry_msgs.msg import PoseStamped, Twist
 
 class Planner(Node):
     """Make and execute a plan."""
+
     def __init__(self):
         """Initialize Node."""
         super().__init__(node_name="Planner")
@@ -27,13 +28,23 @@ class Planner(Node):
         self.cb_estimate = MutuallyExclusiveCallbackGroup()
         self.cb_velocity = MutuallyExclusiveCallbackGroup()
 
-        # TODO: Create client
+        # TODO: Create client to get goal position
 
         # Receive estimated position
-        self.pose_sub = self.create_subscription(PoseStamped, "pose_estimate", self.pose_estimate_callback, 10, callback_group=self.cb_estimate)
+        self.pose_sub = self.create_subscription(
+            PoseStamped,
+            "pose_estimate",
+            self.pose_estimate_callback,
+            10,
+            callback_group=self.cb_estimate,
+        )
 
         # Publish velocity commands
-        self.vel_pub = self.create_publisher(Twist, "cmd_vel", 10, callback_group=self.cb_velocity)
+        timer_period = 0.1
+        self.velocity_timer = self.create_timer(
+            timer_period, self.publish_velocity, callback_group=self.cb_velocity
+        )
+        self.vel_pub = self.create_publisher(Twist, "cmd_vel", 10)
 
         # Inputs
         self.v_r = 0.0
@@ -58,57 +69,66 @@ class Planner(Node):
         self.axle_length = 0.0
 
     def pose_estimate_callback(self, msg: PoseStamped):
-        """Save Position Estimate"""
+        """Save Position Estimate."""
         self.x = msg.pose.position.x
         self.y = msg.pose.position.y
         # Find theta using w and z
         w = msg.pose.orientation.w
         z = msg.pose.orientation.z
-        self.theta = 2 * math.atan2(z,w)
+        self.theta = 2 * math.atan2(z, w)
         if self.goal_set and not self.goal_reached:
-            self.distance_to_goal = math.dist([self.x, self.y],[self.x_g, self.y_g])
+            self.distance_to_goal = math.dist([self.x, self.y], [self.x_g, self.y_g])
 
     def goal_callback(self, msg: PoseStamped):
+        """Save Goal Location."""
         self.x_g = msg.pose.position.x
         self.y_g = msg.pose.position.y
         # Calcluate theta using w and z
         w = msg.pose.orientation.w
         z = msg.pose.orientation.z
-        self.theta_g = 2 * math.atan2(z,w)
+        self.theta_g = 2 * math.atan2(z, w)
         self.get_logger().info("Goal has been set")
         self.goal_set = True
         self.goal_reached = False
 
     def publish_velocity(self):
-        """Send velocity commands to the wheels"""
+        """Send velocity commands to the wheels."""
         if self.goal_set is True:
             # Create vector for go to goal control
-            distance_vector = [self.x_g - self.x , self.y_g - self.y]
+            distance_vector = [self.x_g - self.x, self.y_g - self.y]
             scale = 0.0
             if self.distance_to_goal > self.sphere_of_influence:
                 scale = 1.0
-            elif self.radius_of_influence < self.distance_to_goal <= self.sphere_of_influence:
-                scale = 1 - (self.sphere_of_influence - self.distance_to_goal) / (self.sphere_of_influence - self.radius_of_influence)
+            elif (
+                self.radius_of_influence
+                < self.distance_to_goal
+                <= self.sphere_of_influence
+            ):
+                scale = 1 - (self.sphere_of_influence - self.distance_to_goal) / (
+                    self.sphere_of_influence - self.radius_of_influence
+                )
             elif self.distance_to_goal <= self.radius_of_influence:
                 scale = 0.0
             v_g = self.max_vel * scale
             if self.distance_to_goal > 0:
-                distance_vector *= v_g/self.distance_to_goal
+                distance_vector *= v_g / self.distance_to_goal
             else:
-                distance_vector = [0,0]
-            
+                distance_vector = [0, 0]
+
             # Unicycle Model with Proportional Control
             v = np.linalg.norm(np.array(distance_vector))
             k_gain = 0.75
-            theta_d = math.atan2(distance_vector[1],distance_vector[0])
+            theta_d = math.atan2(distance_vector[1], distance_vector[0])
             omega = -k_gain * (self.theta - theta_d)
 
             # Convert to Differential Drive
-            inputs = np.array([[v],[omega]])
+            inputs = np.array([[v], [omega]])
             r = self.wheel_radius
             L = self.axle_length
-            transform = np.linalg.inv(np.array([[[r/2],[r/2]],[[r/L],[-r/L]]]))
-            self.v_r, self.v_l = transform@inputs
+            transform = np.linalg.inv(
+                np.array([[[r / 2], [r / 2]], [[r / L], [-r / L]]])
+            )
+            self.v_r, self.v_l = transform @ inputs
 
             # Create and send message
             msg = Twist()
@@ -130,7 +150,7 @@ class Planner(Node):
             msg.angular.z = 0.0
             self.vel_pub.publish(msg)
 
-            
+
 def main(args=None):
     """Spin the node."""
     # Initialize ros
@@ -142,5 +162,6 @@ def main(args=None):
     exec.add_node(node)
     exec.spin()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
