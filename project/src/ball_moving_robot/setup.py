@@ -12,6 +12,7 @@ setup(
         ("share/ament_index/resource_index/packages", ["resource/" + package_name]),
         ("share/" + package_name, ["package.xml"]),
         (os.path.join("share", package_name), glob("launch/*.launch.py")),
+        (os.path.join("share", package_name, "rviz"), glob("rviz/*.rviz")),
     ],
     install_requires=["setuptools"],
     zip_safe=True,
@@ -22,6 +23,7 @@ setup(
     tests_require=["pytest"],
     entry_points={
         "console_scripts": [
+            "transforms = ball_moving_robot.transforms:main",
             "localizer = ball_moving_robot.localizer:main",
             "planner = ball_moving_robot.planner:main",
             "driver = ball_moving_robot.driver:main",

@@ -10,5 +10,6 @@
         "/home/derek/robot_intelligence/CS5510-R2D2/project/install/ball_moving_robot/lib/python3.10/site-packages",
         "/opt/ros/humble/lib/python3.10/site-packages",
         "/opt/ros/humble/local/lib/python3.10/dist-packages"
-    ]
+    ],
+    "ros.distro": "humble"
 }
