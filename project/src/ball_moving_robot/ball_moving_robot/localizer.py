@@ -11,11 +11,10 @@ from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 from sensor_msgs.msg import Image
 from geometry_msgs.msg._pose_stamped import PoseStamped
-from std_msgs.msg import Bool
 
 
 class Localizer(Node):
-    """Localize where the ball and goal are"""
+    """Localize where the ball and goal are."""
 
     def __init__(self):
         """Initialize Node."""
@@ -31,34 +30,39 @@ class Localizer(Node):
         self.sub_image = self.create_subscription(
             Image, "raw_image", self.image_callback, 10, callback_group=self.cb_image
         )
-        self.latest_image: typing.Optional[Image] = None
+        self.first_image: typing.Optional[Image] = None
+        self.image_taken = False
 
         # find and publish ball/goal
         self.goal_pub = self.create_publisher(
             PoseStamped, "goal_pose", 10, callback_group=self.cb_goal
         )
-        self.find_ball()
-
-        # see if goal has been reached
-        self.reached_sub = self.create_subscription(
-            Bool, "reached", self.reached_cb, 10, callback_group=self.cb_reached
-        )
+        self.image_processing()
 
     def image_callback(self, msg: Image) -> None:
         """Save latest message."""
-        self.latest_image = msg
+        if self.image_taken == False:
+            self.first_image = msg
+            self.image_taken = True
 
-    def reached_cb(self, msg: Bool):
-        """Save the latest message."""
-        if msg.data == True:
-            self.find_goal()
+    def image_processing(self):
+        """Process the image."""
+        # Find ball and goal and see if they can be found
+        # while ball or goal not found
+        #   set image_taken to False to take in new image
+        # Do the trig
+        # publish where locations are and then die
+
+        self.find_ball()
+        self.find_goal()
+
 
     def find_ball(self) -> PoseStamped:
         """Find where the ball is."""
         self.get_logger().info("Finding ball...")
         msg = PoseStamped()
-        msg.pose.position.x = 5.0
-        msg.pose.position.y = 5.0
+        msg.pose.position.x = 0.0
+        msg.pose.position.y = 1.0
         msg.header.frame_id = "map"
         self.goal_pub.publish(msg)
 

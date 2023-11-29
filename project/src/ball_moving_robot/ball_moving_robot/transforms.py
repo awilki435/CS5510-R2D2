@@ -107,7 +107,8 @@ class TransformPublisher(Node):
             state.pose.orientation.z,
             state.pose.orientation.w,
         ]
-        _, _, psi = tf_transformations.euler_from_quaternion(quaternion=q)
+        # _, _, psi = tf_transformations.euler_from_quaternion(quaternion=q)
+        psi = state.pose.orientation.z
         self.publish_transform(stamp, "vehicle", "body", rot_z(psi))
 
     def publish_transform(

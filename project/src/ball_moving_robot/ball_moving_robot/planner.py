@@ -40,81 +40,67 @@ class Planner(Node):
             callback_group=self.cb_goal,
         )
 
-        # Receive estimated position
-        self.pose_sub = self.create_subscription(
-            PoseStamped,
-            "pose_estimate",
-            self.pose_estimate_callback,
-            10,
-            callback_group=self.cb_estimate,
+        # Publish estimated position
+        timer_period = 0.1
+        self.estimate_timer = self.create_timer(
+            timer_period, self.estimate, callback_group=self.cb_estimate
         )
+        self.pose_pub = self.create_publisher(PoseStamped, "pose", 10)
 
         # Publish velocity commands
-        timer_period = 0.1
         self.velocity_timer = self.create_timer(
             timer_period, self.publish_velocity, callback_group=self.cb_velocity
         )
         self.vel_pub = self.create_publisher(Twist, "cmd_vel", 10)
 
-        # Publish if goal is reached
-        # self.reached_timer = self.create_timer(
-        #     timer_period, self.publish_reached, callback_group=self.cb_reached
-        # )
-        self.reached_pub = self.create_publisher(Bool, "reached", 10)
-
-        # Inputs
-        self.v_r = 0.0
-        self.v_l = 0.0
-        # States
-        self.x = 0.0
+        # position and goals
+        self.goals: typing.List[PoseStamped] = []
+        self.pose = PoseStamped()
+        self.distance_to_goal = np.inf
+        self.sphere_of_influence = 7.5
+        self.radius_of_influence = 0.01
+        self.max_vel = 2
+        # states
+        self.x = -5.0
         self.y = 0.0
         self.theta = 0.0
-        # Goal condition
-        self.goal_set = False
-        self.goal_reached = False
-        self.x_g = 0.0
-        self.y_g = 0.0
-        self.theta_g = 0.0
-        self.distance_to_goal = np.inf
-        # Parameters
-        self.sphere_of_influence = 7.1
-        self.radius_of_influence = 0.01
-        self.max_vel = 2.0
-        # Robot specs
-        self.wheel_radius = 2.0
-        self.axle_length = 4.0
+        # velocity commands
+        self.v = 0.0
+        self.omega = 0.0
 
-    def pose_estimate_callback(self, msg: PoseStamped):
-        """Save Position Estimate."""
-        self.x = msg.pose.position.x
-        self.y = msg.pose.position.y
-        # Find theta using w and z
-        w = msg.pose.orientation.w
-        z = msg.pose.orientation.z
-        self.theta = 2 * math.atan2(z, w)
-        if self.goal_set and not self.goal_reached:
-            self.distance_to_goal = math.dist([self.x, self.y], [self.x_g, self.y_g])
 
     def goal_callback(self, msg: PoseStamped):
         """Save Goal Location."""
-        self.x_g = msg.pose.position.x
-        self.y_g = msg.pose.position.y
-        # Calcluate theta using w and z
-        w = msg.pose.orientation.w
-        z = msg.pose.orientation.z
-        self.theta_g = 2 * math.atan2(z, w)
+        self.goals.append(msg)
         self.get_logger().info("Goal has been set")
-        self.goal_set = True
-        self.goal_reached = False
 
-    def publish_reached(self):
-        msg = Bool()
-        msg.data = self.goal_reached
-        self.reached_pub.publish(msg)
+    def estimate(self):
+        """Estimate position of the robot."""
+        if len(self.goals) == 0:
+            return
+        # Euler integration:
+        # y(t+dt) = y(t) + dt*f(t)
+        dt = 0.1
+        self.x = self.x + dt * self.v * np.cos(self.theta)
+        self.y = self.y + dt* self.v * np.sin(self.theta)
+        self.theta = self.theta + dt * self.omega
+
+        goal = self.goals[0]
+        x_g = goal.pose.position.x
+        y_g = goal.pose.position.y
+
+        self.distance_to_goal = math.dist([self.x, self.y],[x_g,y_g])
+        pose_estimate = PoseStamped()
+        pose_estimate.pose.position.x = self.x
+        pose_estimate.pose.position.y = self.y
+        # abuse notation
+        pose_estimate.pose.orientation.z = self.theta
+        pose_estimate.header.frame_id = "map"
+        self.pose_pub.publish(pose_estimate)
 
     def publish_velocity(self):
         """Send velocity commands to the wheels."""
-        if self.goal_set is False:
+        if len(self.goals) == 0:
             # stay still
             msg = Twist()
             msg.linear.x = 0.0
@@ -126,7 +112,10 @@ class Planner(Node):
             self.vel_pub.publish(msg)
             return
         # Create vector for go to goal control
-        distance_vector = [self.x_g - self.x, self.y_g - self.y]
+        goal = self.goals[0]
+        x_g = goal.pose.position.x
+        y_g = goal.pose.position.y
+        distance_vector = [x_g - self.x, y_g - self.y]
         scale = 0.0
         if self.distance_to_goal > self.sphere_of_influence:
             scale = 1.0
@@ -146,35 +135,23 @@ class Planner(Node):
             ]
         else:
             distance_vector = [0, 0]
-            self.goal_reached = True
-            self.publish_reached()
             self.get_logger().info("Goal Reached")
-            self.goal_set = False
+            self.goals.pop(0)
 
         # Unicycle Model with Proportional Control
-        v = np.linalg.norm(np.array(distance_vector))
+        self.v = np.linalg.norm(np.array(distance_vector))
         k_gain = 0.75
         theta_d = math.atan2(distance_vector[1], distance_vector[0])
-        omega = -k_gain * (self.theta - theta_d)
-
-        # Convert to Differential Drive
-        inputs = np.array([[v], [omega]])
-        r = self.wheel_radius
-        L = self.axle_length
-        transform = np.linalg.inv(np.array([[r / 2, r / 2], [r / L, -r / L]]))
-        right, left = transform @ inputs
-
-        self.v_r = float(right)
-        self.v_l = float(left)
+        self.omega = -k_gain * (self.theta - theta_d)
 
         # Create and send message
         msg = Twist()
-        msg.linear.x = self.v_r
-        msg.linear.y = self.v_l
+        msg.linear.x = self.v
+        msg.linear.y = 0.0
         msg.linear.z = 0.0
         msg.angular.x = 0.0
         msg.angular.y = 0.0
-        msg.angular.z = 0.0
+        msg.angular.z = self.omega
         self.vel_pub.publish(msg)
 
 

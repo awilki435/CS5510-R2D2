@@ -21,8 +21,8 @@ def generate_launch_description():
             Node(
                 package="ball_moving_robot", executable="transforms", name="transforms"
             ),
-            # Node(package="ball_moving_robot", executable="localizer", name="localizer"),
             Node(package="ball_moving_robot", executable="planner", name="planner"),
             Node(package="ball_moving_robot", executable="driver", name="driver"),
+            Node(package="ball_moving_robot", executable="localizer", name="localizer"),
         ]
     )
