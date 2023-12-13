@@ -35,3 +35,7 @@ Please contact a member of this group if you are unable to run any of these prob
 ### Problem 8
 - Part (a): run `part_a.py`
 - Part (b): look through the README files under both `yolo` folders
+
+### Final Project
+- The final project has its own README for instructions on how to run
+- Go to the project folder
