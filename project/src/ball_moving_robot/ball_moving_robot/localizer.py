@@ -13,6 +13,7 @@ from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 from sensor_msgs.msg import Image
 from geometry_msgs.msg._pose_stamped import PoseStamped
+from cv_bridge import CvBridge
 
 
 class Localizer(Node):
@@ -62,8 +63,8 @@ class Localizer(Node):
     def find_ball(self) -> PoseStamped:
         """Find where the ball is."""
         # Read the captured image
-        # TODO: Change the image to an image captured by the robot
-        image = cv2.imread('ball_moving_robot/balls.jpg')
+        bridge = CvBridge()
+        image = bridge.imgmsg_to_cv2(self.first_image, desired_encoding="passthrough")
 
         # Convert the image to the HSV color space
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
@@ -97,8 +98,8 @@ class Localizer(Node):
     def find_goal(self) -> PoseStamped:
         """Find where the goal is."""
         # Read the captured image
-        # TODO: Change the image to each image captured by the robot
-        image = cv2.imread('ball_moving_robot/balls.jpg')
+        bridge = CvBridge()
+        image = bridge.imgmsg_to_cv2(self.first_image, desired_encoding="passthrough")
 
         # Convert the image to the HSV color space
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
